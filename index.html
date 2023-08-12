@@ -1,5 +1,6 @@
 <html>
 <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+<script src="words.js"></script>
 
 <body>
   <div id="container"></div>
@@ -15,7 +16,6 @@
   for (var i = 0; i < rows; i++) {
     grid[i] = new Array(cols);
   }
-  console.log(grid);
 
   var width = cols*sf;
   var height = rows*sf;
@@ -160,7 +160,6 @@
   function validateTetromino(t) {
     for (var i = 0; i < t.children.length; i++) {
       var pos = t.children[i].absolutePosition();
-      console.log(pos);
       if (!validatePos(pos.x, pos.y)) {
         return false;
       }
