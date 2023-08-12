@@ -12,18 +12,8 @@
   var rows = 30;
   var sf = 30
 
-  let grid = new Array(rows);
-  for (var i = 0; i < rows; i++) {
-    grid[i] = new Array(cols);
-  }
-
   var width = cols*sf;
   var height = rows*sf;
-
-  function randomLetter() {
-    var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    return alphabet[Math.floor(Math.random() * alphabet.length)];
-  }
 
   function Block(letter, x, y, color) {
     var block = new Konva.Group({
@@ -41,8 +31,8 @@
     )
     block.add(
       new Konva.Text({
-        x: sf*0.15,
-        y: sf*0.1,
+        x: sf*0.2,
+        y: sf*0.15,
         text: letter,
         fontSize: sf*0.8,
         fontFamily: "Calibri",
@@ -53,16 +43,79 @@
     return block;
   };
 
+  function checkScoreCondition() {
+      var grid = new Array(rows);
+      for (var i = 0; i < rows; i++) {
+        grid[i] = new Array(cols);
+        grid[i].fill(" ");
+      }
+      background.children.forEach((e) => grid[e.y()/sf][e.x()/sf] = e);
+    var lines = new Array(rows);
+      for (var i = 0; i < rows; i++) {
+        lines[i] = grid[i].map((e) => e != " " ? e.children[1].text() : " ").join("").trim(" ");
+      }
+
+    var rows_to_remove = new Set();
+    var removed_words = "";
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      var minlength = 3;
+      if (line.length < minlength) {
+        continue;
+      }
+
+      console.log(wordset);
+      for (var j = 0; j <= line.length - minlength; j++) {
+        for (var k = j + minlength; k <= line.length; k++) {
+          var tocheck = line.slice(j, k);
+          console.log(tocheck);
+          if (wordset.has(tocheck)) {
+            rows_to_remove.add(i*sf);
+            state.score += tocheck.length;
+            removed_words += tocheck + ", ";
+            console.log(i, tocheck, state.score);
+          }
+        }
+      }
+
+    }
+
+
+    console.log(rows_to_remove);
+
+    if (rows_to_remove.size == 0) {
+        return;
+    }
+
+
+    truebackground.children[truebackground.children.length - 1].setText("Score: " + state.score + "\nLast Word(s): " + removed_words);
+
+    background.children = background.children.filter((e) => !rows_to_remove.has(e.y()));
+
+    background.children.sort((b, a) => {a.y() - b.y()});
+
+    for (var i = 0; i < rows_to_remove.size; i++) {
+      background.children.forEach((e) => {
+        e.setPosition({x: e.x(), y: e.y() + sf});
+        if (!validatePos(e.x(), e.y(), e)) {
+          e.setPosition({x: e.x(), y: e.y() - sf});
+        }
+      });
+    }
+  };
+
   function TetrominoBox(x, y) {
     var t = new Konva.Group({
       x: x,
       y: y,
       name: "box"
     });
-    t.add(Block(randomLetter(), 0, 0, "yellow"));
-    t.add(Block(randomLetter(), sf, 0, "yellow"));
-    t.add(Block(randomLetter(), 0, sf, "yellow"));
-    t.add(Block(randomLetter(), sf, sf, "yellow"));
+    var word = pickRandom(words4);
+    var i = randomIntFromInterval(0, word.length - 4);
+    t.add(Block(word[i++], 0, 0, "yellow"));
+    t.add(Block(word[i++], sf, 0, "yellow"));
+    t.add(Block(word[i++], 0, sf, "yellow"));
+    t.add(Block(word[i++], sf, sf, "yellow"));
     return t;
   };
 
@@ -72,10 +125,12 @@
       y: y,
       name: "l"
     });
-    t.add(Block(randomLetter(), 0, 0, "lightblue"));
-    t.add(Block(randomLetter(), sf, 0, "lightblue"));
-    t.add(Block(randomLetter(), 0, sf, "lightblue"));
-    t.add(Block(randomLetter(), 0, sf*2, "lightblue"));
+    var word = pickRandom(words4);
+    var i = randomIntFromInterval(0, word.length - 4);
+    t.add(Block(word[i++], 0, 0, "lightblue"));
+    t.add(Block(word[i++], sf, 0, "lightblue"));
+    t.add(Block(word[i++], 0, sf, "lightblue"));
+    t.add(Block(word[i++], 0, sf*2, "lightblue"));
     return t;
   }
 
@@ -85,10 +140,12 @@
       y: y,
       name: "bl"
     });
-    t.add(Block(randomLetter(), 0, 0, "orange"));
-    t.add(Block(randomLetter(), sf, 0, "orange"));
-    t.add(Block(randomLetter(), 0, -sf, "orange"));
-    t.add(Block(randomLetter(), 0, -sf*2, "orange"));
+    var word = pickRandom(words4);
+    var i = randomIntFromInterval(0, word.length - 4);
+    t.add(Block(word[i++], 0, 0, "orange"));
+    t.add(Block(word[i++], sf, 0, "orange"));
+    t.add(Block(word[i++], 0, -sf, "orange"));
+    t.add(Block(word[i++], 0, -sf*2, "orange"));
     return t;
   }
 
@@ -98,10 +155,12 @@
       y: y,
       name: "t"
     });
-    t.add(Block(randomLetter(), 0, 0, "purple"));
-    t.add(Block(randomLetter(), sf, 0, "purple"));
-    t.add(Block(randomLetter(), -sf, 0, "purple"));
-    t.add(Block(randomLetter(), 0, sf, "purple"));
+    var word = pickRandom(words4);
+    var i = randomIntFromInterval(0, word.length - 4);
+    t.add(Block(word[i++], 0, 0, "purple"));
+    t.add(Block(word[i++], sf, 0, "purple"));
+    t.add(Block(word[i++], -sf, 0, "purple"));
+    t.add(Block(word[i++], 0, sf, "purple"));
     return t;
   }
 
@@ -111,10 +170,12 @@
       y: y,
       name: "i"
     });
-    t.add(Block(randomLetter(), 0, 0, "green"));
-    t.add(Block(randomLetter(), -sf, 0, "green"));
-    t.add(Block(randomLetter(), sf, 0, "green"));
-    t.add(Block(randomLetter(), sf*2, 0, "green"));
+    var word = pickRandom(words4);
+    var i = randomIntFromInterval(0, word.length - 4);
+    t.add(Block(word[i++], 0, 0, "green"));
+    t.add(Block(word[i++], -sf, 0, "green"));
+    t.add(Block(word[i++], sf, 0, "green"));
+    t.add(Block(word[i++], sf*2, 0, "green"));
     return t;
   }
 
@@ -138,7 +199,7 @@
   
   var layer = new Konva.Layer();
 
-  function validatePos(x, y) {
+  function validatePos(x, y, obj=null) {
     if (x < 0) {
       return false;
     }
@@ -149,7 +210,11 @@
       return false;
     }
     for (var i = 0; i < background.children.length; i++) {
-      var pos = background.children[i].absolutePosition();
+      var ch = background.children[i];
+      if (obj != null && obj == ch) {
+        continue;
+      }
+      var pos = ch.absolutePosition();
       if (pos.x == x && pos.y == y) {
         return false;
       }
@@ -178,7 +243,9 @@
   stage.add(layer);
   stage.draw();
 
-  var state = {current: "falling", block: makeTetromino(width / 2, 0)};
+  var state = {current: "falling", block: makeTetromino(width / 2, 0), score:0};
+
+  truebackground.add(new Konva.Text({x: 0, y: 0, text: "Score: " + state.score, fontSize:sf}));
   layer.add(state.block);
 
   rotate(state.block, 1);
@@ -236,10 +303,11 @@
         state.block = makeTetromino(width / 2, 0);
         layer.children.pop();
         layer.add(state.block);
+        checkScoreCondition();
         state.current = "falling";
       }
     }
-  }, 1000);
+  }, 1500);
 
 </script>
 
