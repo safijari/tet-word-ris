@@ -172,15 +172,45 @@
     });
     var word = pickRandom(words4);
     var i = randomIntFromInterval(0, word.length - 4);
-    t.add(Block(word[i++], 0, 0, "green"));
-    t.add(Block(word[i++], -sf, 0, "green"));
-    t.add(Block(word[i++], sf, 0, "green"));
-    t.add(Block(word[i++], sf*2, 0, "green"));
+    t.add(Block(word[i++], 0, 0, "cyan"));
+    t.add(Block(word[i++], -sf, 0, "cyan"));
+    t.add(Block(word[i++], sf, 0, "cyan"));
+    t.add(Block(word[i++], sf*2, 0, "cyan"));
+    return t;
+  }
+
+  function TetrominoZ(x, y) {
+    var t = new Konva.Group({
+      x: x,
+      y: y,
+      name: "i"
+    });
+    var word = pickRandom(words4);
+    var i = randomIntFromInterval(0, word.length - 4);
+    t.add(Block(word[i++], 0, 0, "red"));
+    t.add(Block(word[i++], -sf, 0, "red"));
+    t.add(Block(word[i++], 0, sf, "red"));
+    t.add(Block(word[i++], sf, sf, "red"));
+    return t;
+  }
+
+  function TetrominoS(x, y) {
+    var t = new Konva.Group({
+      x: x,
+      y: y,
+      name: "i"
+    });
+    var word = pickRandom(words4);
+    var i = randomIntFromInterval(0, word.length - 4);
+    t.add(Block(word[i++], 0, 0, "lightgreen"));
+    t.add(Block(word[i++], sf, 0, "lightgreen"));
+    t.add(Block(word[i++], 0, sf, "lightgreen"));
+    t.add(Block(word[i++], -sf, sf, "lightgreen"));
     return t;
   }
 
   function makeTetromino(x, y) {
-    var available = [TetrominoBox, TetrominoL, TetrominoT, TetrominoI, TetrominoBL];
+    var available = [TetrominoBox, TetrominoL, TetrominoT, TetrominoI, TetrominoBL, TetrominoZ, TetrominoS];
     return available[Math.floor(Math.random() * available.length)](x, y);
   }
 
