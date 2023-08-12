@@ -1,0 +1,247 @@
+<html>
+<script src="https://unpkg.com/konva@9/konva.min.js"></script>
+
+<body>
+  <div id="container"></div>
+</body>
+
+<script>
+  // first we need to create a stage
+  var cols = 20;
+  var rows = 30;
+  var sf = 30
+
+  let grid = new Array(rows);
+  for (var i = 0; i < rows; i++) {
+    grid[i] = new Array(cols);
+  }
+  console.log(grid);
+
+  var width = cols*sf;
+  var height = rows*sf;
+
+  function randomLetter() {
+    var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    return alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+
+  function Block(letter, x, y, color) {
+    var block = new Konva.Group({
+      x: x,
+      y: y,
+    })
+    block.add(
+      new Konva.Rect({
+        x: 0,
+        y: 0,
+        width: sf,
+        height: sf,
+        fill: color,
+      })   
+    )
+    block.add(
+      new Konva.Text({
+        x: sf*0.15,
+        y: sf*0.1,
+        text: letter,
+        fontSize: sf*0.8,
+        fontFamily: "Calibri",
+        fill: 'black'
+      })
+
+    )
+    return block;
+  };
+
+  function TetrominoBox(x, y) {
+    var t = new Konva.Group({
+      x: x,
+      y: y,
+      name: "box"
+    });
+    t.add(Block(randomLetter(), 0, 0, "yellow"));
+    t.add(Block(randomLetter(), sf, 0, "yellow"));
+    t.add(Block(randomLetter(), 0, sf, "yellow"));
+    t.add(Block(randomLetter(), sf, sf, "yellow"));
+    return t;
+  };
+
+  function TetrominoL(x, y) {
+    var t = new Konva.Group({
+      x: x,
+      y: y,
+      name: "l"
+    });
+    t.add(Block(randomLetter(), 0, 0, "lightblue"));
+    t.add(Block(randomLetter(), sf, 0, "lightblue"));
+    t.add(Block(randomLetter(), 0, sf, "lightblue"));
+    t.add(Block(randomLetter(), 0, sf*2, "lightblue"));
+    return t;
+  }
+
+  function TetrominoBL(x, y) {
+    var t = new Konva.Group({
+      x: x,
+      y: y,
+      name: "bl"
+    });
+    t.add(Block(randomLetter(), 0, 0, "orange"));
+    t.add(Block(randomLetter(), sf, 0, "orange"));
+    t.add(Block(randomLetter(), 0, -sf, "orange"));
+    t.add(Block(randomLetter(), 0, -sf*2, "orange"));
+    return t;
+  }
+
+  function TetrominoT(x, y) {
+    var t = new Konva.Group({
+      x: x,
+      y: y,
+      name: "t"
+    });
+    t.add(Block(randomLetter(), 0, 0, "purple"));
+    t.add(Block(randomLetter(), sf, 0, "purple"));
+    t.add(Block(randomLetter(), -sf, 0, "purple"));
+    t.add(Block(randomLetter(), 0, sf, "purple"));
+    return t;
+  }
+
+  function TetrominoI(x, y) {
+    var t = new Konva.Group({
+      x: x,
+      y: y,
+      name: "i"
+    });
+    t.add(Block(randomLetter(), 0, 0, "green"));
+    t.add(Block(randomLetter(), -sf, 0, "green"));
+    t.add(Block(randomLetter(), sf, 0, "green"));
+    t.add(Block(randomLetter(), sf*2, 0, "green"));
+    return t;
+  }
+
+  function makeTetromino(x, y) {
+    var available = [TetrominoBox, TetrominoL, TetrominoT, TetrominoI, TetrominoBL];
+    return available[Math.floor(Math.random() * available.length)](x, y);
+  }
+
+  var stage = new Konva.Stage({
+    container: 'container',   // id of container <div>
+    width: width,
+    height: height,
+  });
+
+  var truebackground = new Konva.Layer();
+  truebackground.add(new Konva.Rect({x: 0, y: 0, width:cols*sf, height: rows*sf, fill:"gray"}));
+
+  var background = new Konva.Layer();
+  stage.add(truebackground);
+  stage.add(background);
+  
+  var layer = new Konva.Layer();
+
+  function validatePos(x, y) {
+    if (x < 0) {
+      return false;
+    }
+    if (x >= width) {
+      return false;
+    }
+    if (y >= height) {
+      return false;
+    }
+    for (var i = 0; i < background.children.length; i++) {
+      var pos = background.children[i].absolutePosition();
+      if (pos.x == x && pos.y == y) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function validateTetromino(t) {
+    for (var i = 0; i < t.children.length; i++) {
+      var pos = t.children[i].absolutePosition();
+      console.log(pos);
+      if (!validatePos(pos.x, pos.y)) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  function rotate(t, dir) {
+    for (var i = 0; i < t.children.length; i++) {
+      var ch = t.children[i];
+      ch.setPosition({x: ch.y()*-1*dir, y: ch.x()*dir});
+    }
+  }
+
+
+  stage.add(layer);
+  stage.draw();
+
+  var state = {current: "falling", block: makeTetromino(width / 2, 0)};
+  layer.add(state.block);
+
+  rotate(state.block, 1);
+
+  var container = stage.container();
+  container.tabIndex = 1;
+  container.focus();
+  container.addEventListener("keydown", function(e) {
+    if (state.current != "falling") {
+      return;
+    }
+    switch (e.keyCode) {
+    case 37:
+      state.block.setPosition({x: state.block.x() - sf, y: state.block.y()});
+      if (!validateTetromino(state.block)) {
+        state.block.setPosition({x: state.block.x() + sf, y: state.block.y()});
+      }
+      break;
+    case 38:
+      rotate(state.block, -1);
+      if (!validateTetromino(state.block)) {
+        rotate(state.block, 1);
+      }
+      break;
+    case 40:
+      state.block.setPosition({x: state.block.x(), y: state.block.y() + sf});
+      if (!validateTetromino(state.block)) {
+        state.block.setPosition({x: state.block.x(), y: state.block.y() - sf});
+      }
+      break;
+    case 39:
+      state.block.setPosition({x: state.block.x() + sf, y: state.block.y()});
+      if (!validateTetromino(state.block)) {
+        state.block.setPosition({x: state.block.x() - sf, y: state.block.y()});
+      }
+      break;
+    default:
+      return
+    }
+    e.preventDefault();
+
+  });
+
+  setInterval(function() {
+    if (state.current == "falling") {
+      state.block.setPosition({x: state.block.x(), y: state.block.y() + sf});
+      if (!validateTetromino(state.block)) {
+        state.block.setPosition({x: state.block.x(), y: state.block.y() - sf});
+        state.current = "";
+        while (state.block.children.length > 0) {
+          var abs_pos = state.block.children[state.block.children.length - 1].absolutePosition();
+          background.add(state.block.children.pop());
+          background.children[background.children.length - 1].setPosition({x: abs_pos.x, y: abs_pos.y});
+        }
+        state.block = makeTetromino(width / 2, 0);
+        layer.children.pop();
+        layer.add(state.block);
+        state.current = "falling";
+      }
+    }
+  }, 1000);
+
+</script>
+
+</html>
