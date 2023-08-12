@@ -1,6 +1,9 @@
 <html>
 <script src="https://unpkg.com/konva@9/konva.min.js"></script>
 <script src="words.js"></script>
+<style>
+html, body, * { touch-action: manipulation }
+</style>
 
 <body>
   <div id="container"></div>
@@ -217,7 +220,7 @@
   var stage = new Konva.Stage({
     container: 'container',   // id of container <div>
     width: width,
-    height: height,
+    height: height + sf*20,
   });
 
   var truebackground = new Konva.Layer();
@@ -226,6 +229,25 @@
   var background = new Konva.Layer();
   stage.add(truebackground);
   stage.add(background);
+
+  function rectWithText(x, y, width, height, text) {
+    var grp = new Konva.Group({x: x, y: y});
+    grp.add(new Konva.Rect({x: 0, y: 0, width: width, height: height, stroke: 4}));
+    grp.add(new Konva.Text({x: 0, y: sf*1.5, width: width, height: height, text: text, fontSize: sf, align: "center"}));
+    return grp
+  }
+
+  var leftButton = rectWithText(sf, height + sf * 3, width / 4, sf*4, "LEFT");
+  truebackground.add(leftButton);
+
+  var rightButton = rectWithText(width - sf - width / 4, height + sf*3, width / 4, sf*4, "RIGHT");
+  truebackground.add(rightButton);
+
+  var upButton = rectWithText(width / 2 - width / 8, height + sf*1, width / 4, sf*4, "ROTATE");
+  truebackground.add(upButton);
+
+  var downButton = rectWithText(width / 2 - width / 8, height + sf*7, width / 4, sf*4, "DOWN");
+  truebackground.add(downButton);
   
   var layer = new Konva.Layer();
 
@@ -270,24 +292,8 @@
   }
 
 
-  stage.add(layer);
-  stage.draw();
-
-  var state = {current: "falling", block: makeTetromino(width / 2, 0), score:0};
-
-  truebackground.add(new Konva.Text({x: 0, y: 0, text: "Score: " + state.score, fontSize:sf}));
-  layer.add(state.block);
-
-  rotate(state.block, 1);
-
-  var container = stage.container();
-  container.tabIndex = 1;
-  container.focus();
-  container.addEventListener("keydown", function(e) {
-    if (state.current != "falling") {
-      return;
-    }
-    switch (e.keyCode) {
+  function action(type) {
+    switch (type) {
     case 37:
       state.block.setPosition({x: state.block.x() - sf, y: state.block.y()});
       if (!validateTetromino(state.block)) {
@@ -315,6 +321,37 @@
     default:
       return
     }
+  };
+
+
+  upButton.on("click", (e) => action(38));
+  downButton.on("click", (e) => action(40));
+  leftButton.on("click", (e) => action(37));
+  rightButton.on("click", (e) => action(39));
+  upButton.on("tap", (e) => action(38));
+  downButton.on("tap", (e) => action(40));
+  leftButton.on("tap", (e) => action(37));
+  rightButton.on("tap", (e) => action(39));
+
+                        
+  stage.add(layer);
+  stage.draw();
+
+  var state = {current: "falling", block: makeTetromino(width / 2, 0), score:0};
+
+  truebackground.add(new Konva.Text({x: 0, y: 0, text: "Score: " + state.score, fontSize:sf}));
+  layer.add(state.block);
+
+  rotate(state.block, 1);
+
+  var container = stage.container();
+  container.tabIndex = 1;
+  container.focus();
+  container.addEventListener("keydown", function(e) {
+    if (state.current != "falling") {
+      return;
+    }
+    action(e.keyCode);
     e.preventDefault();
 
   });
