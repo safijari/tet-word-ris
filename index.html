@@ -64,11 +64,11 @@
         continue;
       }
 
-      console.log(wordset);
+      // console.log(wordset);
       for (var j = 0; j <= line.length - minlength; j++) {
         for (var k = j + minlength; k <= line.length; k++) {
           var tocheck = line.slice(j, k);
-          console.log(tocheck);
+          // console.log(tocheck);
           if (wordset.has(tocheck)) {
             rows_to_remove.add(i*sf);
             state.score += tocheck.length;
@@ -81,7 +81,7 @@
     }
 
 
-    console.log(rows_to_remove);
+    // console.log(rows_to_remove);
 
     if (rows_to_remove.size == 0) {
         return;
